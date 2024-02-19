@@ -1,38 +1,25 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect, useRef, useState } from "react";
 import { useAtom } from "jotai";
 import { messagesAtom } from "../../Atoms/Messages.atom";
-
-import { TypeMessage, TypeMessagePost } from "../../Entities/Message.entity";
-
+import { TypeMessage } from "../../Entities/Message.entity";
 import styles from "./Chat.module.css";
+import { fetchMessages, postMessage } from "../../Config/Api";
 
 const ChatComponent = () => {
   const [messages, setMessages] = useAtom(messagesAtom);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const chatEndRef = useRef<null | HTMLDivElement>(null);
 
-  const fetchMessages = async () => {
-    try {
-      const response = await axios.get<TypeMessagePost>(
-        `https://chatty.doodle-test.com/api/chatty/v1.0/?token=${process.env.REACT_APP_DOODLE_TOKEN}`
-      );
-      setMessages(response?.data as unknown as TypeMessage[]);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-    }
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const sendMessage = async () => {
     const token = process.env.REACT_APP_DOODLE_TOKEN;
-    const headers = {
-      "Content-Type": "application/json",
-      token: token,
-    };
 
     const data: TypeMessage = {
-      _id: 0,
+      _id: Number(`${Math.floor(100000 + Math.random() * 900000)}`),
       author: "Tom",
       message: newMessage,
       timestamp: Date.now(),
@@ -40,18 +27,18 @@ const ChatComponent = () => {
     };
 
     try {
-      await axios.post("https://chatty.doodle-test.com/api/chatty/v1.0", data, {
-        headers,
-      });
+      await postMessage(data);
       setNewMessage("");
-      fetchMessages();
+      fetchMessages(setMessages, setLoading, scrollToBottom);
     } catch (error) {
+      // TODO: incorporate error messages into UI
       console.error("Error sending message:", error);
     }
   };
 
   useEffect(() => {
-    fetchMessages();
+    fetchMessages(setMessages, setLoading, scrollToBottom);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formattedDate = (timestamp: number) => {
@@ -65,6 +52,12 @@ const ChatComponent = () => {
     )}:${String(date.getMinutes()).padStart(2, "0")}`;
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      sendMessage();
+    }
+  };
+
   return (
     <div className={styles.chatWrapper}>
       <div className={styles.messageBubbleWrapper}>
@@ -75,11 +68,13 @@ const ChatComponent = () => {
             <div
               key={message._id}
               className={`${styles.messageBubble} ${
-                message.author === "Tom" ? styles.tom : ""
+                message.author === "Tom" ? styles.loggedInUser : ""
               }`}
             >
-              <p>
-                {message.author}: {message.message.replaceAll("&#x27;", "'")}
+              <p className={styles.authorName}>{message.author}</p>
+              <p className={styles.message}>
+                {/* TODO: test for more codes that might need to be cleaned-up  */}
+                {message.message.replaceAll("&#x27;", "'")}
               </p>
               <span className={styles.timestamp}>
                 {formattedDate(message.timestamp)}
@@ -87,14 +82,20 @@ const ChatComponent = () => {
             </div>
           ))
         )}
+        <div ref={chatEndRef} />
       </div>
       <div className={styles.inputContainer}>
         <input
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Message"
+          className={styles.messageInput}
         />
-        <button onClick={sendMessage}>Send</button>
+        <button onClick={sendMessage} className={styles.sendButton}>
+          Send
+        </button>
       </div>
     </div>
   );

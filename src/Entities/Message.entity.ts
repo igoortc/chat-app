@@ -6,6 +6,6 @@ export type TypeMessage = {
   token: string;
 };
 
-export type TypeMessagePost = {
+export type TypeMessageGet = {
   data: TypeMessage[];
 };
