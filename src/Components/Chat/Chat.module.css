@@ -1,0 +1,64 @@
+.chatWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.messageBubbleWrapper {
+  flex: 1;
+  overflow-y: auto;
+  border-bottom: 1px solid #ccc;
+}
+
+.messageBubble {
+  background-color: #fff;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 5px;
+  position: relative;
+  width: 80%;
+  border: 1px solid #e3e5da;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: #888;
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+}
+
+.inputContainer {
+  display: flex;
+  padding: 10px;
+  background-color: #3898d4;
+  position: sticky;
+  bottom: 0;
+}
+
+input {
+  flex: 1;
+  padding: 8px;
+  margin-right: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  padding: 8px;
+  background-color: #f7866e;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.tom {
+  background-color: #fcf6c4 !important;
+}
+
+@media (max-width: 600px) {
+  .messageBubble {
+    width: 100%;
+  }
+}

@@ -5,9 +5,12 @@ import { messagesAtom } from "../../Atoms/Messages.atom";
 
 import { TypeMessage, TypeMessagePost } from "../../Entities/Message.entity";
 
+import styles from "./Chat.module.css";
+
 const ChatComponent = () => {
   const [messages, setMessages] = useAtom(messagesAtom);
   const [newMessage, setNewMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const fetchMessages = async () => {
     try {
@@ -15,6 +18,7 @@ const ChatComponent = () => {
         `https://chatty.doodle-test.com/api/chatty/v1.0/?token=${process.env.REACT_APP_DOODLE_TOKEN}`
       );
       setMessages(response?.data as unknown as TypeMessage[]);
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching messages:", error);
     }
@@ -62,18 +66,29 @@ const ChatComponent = () => {
   };
 
   return (
-    <div>
-      <div>
-        {messages.map((message: TypeMessage) => (
-          <div key={message._id}>
-            <p>
-              {message.author}: {message.message.replaceAll("&#x27;", "'")}
-            </p>
-            <span>{formattedDate(message.timestamp)}</span>
-          </div>
-        ))}
+    <div className={styles.chatWrapper}>
+      <div className={styles.messageBubbleWrapper}>
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          messages.map((message: TypeMessage) => (
+            <div
+              key={message._id}
+              className={`${styles.messageBubble} ${
+                message.author === "Tom" ? styles.tom : ""
+              }`}
+            >
+              <p>
+                {message.author}: {message.message.replaceAll("&#x27;", "'")}
+              </p>
+              <span className={styles.timestamp}>
+                {formattedDate(message.timestamp)}
+              </span>
+            </div>
+          ))
+        )}
       </div>
-      <div>
+      <div className={styles.inputContainer}>
         <input
           type="text"
           value={newMessage}
